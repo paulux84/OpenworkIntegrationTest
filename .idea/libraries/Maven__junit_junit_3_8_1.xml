@@ -1,0 +1,20 @@
+<component name="libraryTable">
+  <library name="Maven: junit:junit:3.8.1">
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/junit/junit/3.8.1/junit-3.8.1.jar!/" />
+      <root url="jar://$USER_HOME$/Scaricati/openworkProxy.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$MAVEN_REPOSITORY$/junit/junit/3.8.1/junit-3.8.1-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$MAVEN_REPOSITORY$/junit/junit/3.8.1/junit-3.8.1-sources.jar!/" />
+      <root url="jar://$USER_HOME$/Scaricati/openworkProxy.jar!/proxies_code/com/microsoft/schemas/_2003/_10/serialization/arrays" />
+      <root url="jar://$USER_HOME$/Scaricati/openworkProxy.jar!/proxies_code/com/openworkbpm/schema" />
+      <root url="jar://$USER_HOME$/Scaricati/openworkProxy.jar!/proxies_code/com/openworkbpm/schema/data_application" />
+      <root url="jar://$USER_HOME$/Scaricati/openworkProxy.jar!/proxies_code/com/openworkbpm/schema/event_application" />
+      <root url="jar://$USER_HOME$/Scaricati/openworkProxy.jar!/proxies_code/org/datacontract/schemas/_2004/_07/openwork_organization" />
+      <root url="jar://$USER_HOME$/Scaricati/openworkProxy.jar!/proxies_code/org/datacontract/schemas/_2004/_07/system" />
+    </SOURCES>
+  </library>
+</component>
