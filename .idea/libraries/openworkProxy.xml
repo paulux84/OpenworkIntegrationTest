@@ -1,0 +1,16 @@
+<component name="libraryTable">
+  <library name="openworkProxy">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/lib/openworkProxy.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$PROJECT_DIR$/lib/openworkProxy.jar!/proxies_code/com/microsoft/schemas/_2003/_10/serialization/arrays" />
+      <root url="jar://$PROJECT_DIR$/lib/openworkProxy.jar!/proxies_code/com/openworkbpm/schema" />
+      <root url="jar://$PROJECT_DIR$/lib/openworkProxy.jar!/proxies_code/com/openworkbpm/schema/data_application" />
+      <root url="jar://$PROJECT_DIR$/lib/openworkProxy.jar!/proxies_code/com/openworkbpm/schema/event_application" />
+      <root url="jar://$PROJECT_DIR$/lib/openworkProxy.jar!/proxies_code/org/datacontract/schemas/_2004/_07/openwork_organization" />
+      <root url="jar://$PROJECT_DIR$/lib/openworkProxy.jar!/proxies_code/org/datacontract/schemas/_2004/_07/system" />
+    </SOURCES>
+  </library>
+</component>
