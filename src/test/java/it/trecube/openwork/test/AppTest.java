@@ -18,13 +18,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 
 public class AppTest
 {
 
-    private static final String USERNAME = "administrator";
-    private static final String PASSWORD = "SupTest!";
+    private static final String USERNAME = "neri";
+    private static final String PASSWORD = "ng";
 
     ISessionManagement sessionManagement = new ISessionManagementbasicHttpBindingGateway().getBasicHttpBindingGatewayISessionManagement();
 
@@ -37,6 +38,7 @@ public class AppTest
     String repositoryId = "0782621F10E744FE9E2DA2B200EFE71D" ;
     String modelUrlUtenti ="/"+repositoryId+"/Model/8BF7283E735943D780C3A2B3010CDA2A";
 
+    String identityCatalogUrl = "/"+repositoryId+"/Model/68BBE39D7A474E52BDD4A30801111341";
 
     @org.junit.Test
     public void testCreateUser() throws UnknownHostException {
@@ -102,30 +104,56 @@ public class AppTest
     }
 
     @Test
-    public void searchParameters() throws UnknownHostException {
+    public void updateUserAccount() throws UnknownHostException {
         SearchParameters parameters = new SearchParameters();
 
         Ordering ordering = new Ordering();
         ordering.setAscending(true);
         ordering.setColumnName("Nome");
 
+
         ArrayOfOrdering ao = new ArrayOfOrdering();
         ao.getOrdering().add(ordering);
 
         parameters.setOrderingCriteria(ao);
+        parameters.setPageNumber(1);
+        parameters.setPageSize(-1);
 
-        parameters.setFilter(getStringFilter("Nome", PredicateTypes.EQUALS_TO, "nomeOrg_Able2_1433520789264"));
+        parameters.setFilter(getStringFilter("Username", PredicateTypes.EQUALS_TO, "nomeOrg_Able2_1433520789264"));
 
-        //Lancia No Permission Error
-        ServiceResultOfCatalog result = identityManagement.getCatalog(repositoryId, modelUrlUtenti, parameters, login(USERNAME, PASSWORD));
-        assertFalse(result.isError());
+        RequestInfo requestInfo = login(USERNAME, PASSWORD);
+        //TODO: Reperimento modelUrl
+//        ServiceResultOfCatalog resultOfCatalog = identityManagement.getMainCatalog(repositoryId, requestInfo);
+
+
+        ServiceResultOfCatalog result = identityManagement.getCatalog(repositoryId, identityCatalogUrl, parameters, requestInfo);
+        if(result.isError())
+            assertTrue(result.getResultInfoList().getResultInfo().get(0).getDetailMessages().getString().get(0),false);
+
+        String userId = result.getValue().getItemList().getCatalogItem().get(0).getUrl().split("/")[3];
+        //update Account
+        Account userAccount = new Account();
+
+        userAccount.setName("user_" + new Date().getTime());
+        userAccount.setAllowPasswordChange(true);
+        //associa l'account ad un'identità in base al suo id (in questo caso è quello ritornato in fase di creazione in remoto)
+        userAccount.setId(userId);
+        userAccount.setPasswordRequired(true);
+
+        identityManagement.deleteAccountById(repositoryId,userId,requestInfo);
+
+        //Crea l'account in remoto
+        ServiceResult accountResult = identityManagement.createAccount(repositoryId, userAccount, "password", requestInfo);
+        assertFalse(accountResult.isError());
+
+        ServiceResultOfCatalog eventCatalogResult = eventManagement.getExtensionsCatalog(repositoryId, null, requestInfo);
+        assertFalse(eventCatalogResult.isError());
+
 
     }
 
     public static Filter getStringFilter (final String subject,PredicateTypes predicate, String complement)
     {
-        App.main(new String[]{});
-
         Filter filter = new Filter();
 
         Subject subjectClass = new Subject();
@@ -137,14 +165,10 @@ public class AppTest
 
         predicateClass.setType(predicate);
         predicateClass.setValue(PredicateValueTypes.TRUE);
-            //C# code
-//            Type=predicate,
-//            TypeSpecified=true,
-//            Value=PredicateValueTypes.True,
-//            ValueSpecified=true,
+        filter.setPredicate(predicateClass);
 
         EvaluationExpression evaluationExpression = new EvaluationExpression();
-        evaluationExpression.setCode(complement);
+        evaluationExpression.setCode("'"+complement+"'");
         filter.setComplement(evaluationExpression);
         return filter;
     }
