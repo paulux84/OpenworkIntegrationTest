@@ -7,6 +7,8 @@ import com.openworkbpm.schema.event_application.IEventManagement;
 import com.openworkbpm.schema.event_application.IEventManagementbasicHttpBindingGateway;
 import com.openworkbpm.schema.identity_application.IIdentityManagement;
 import com.openworkbpm.schema.identity_application.IIdentityManagementbasicHttpBindingGateway;
+import com.openworkbpm.schema.model_application.IModelManagement;
+import com.openworkbpm.schema.model_application.IModelManagementbasicHttpBindingGateway;
 import com.openworkbpm.schema.session_application.ISessionManagement;
 import com.openworkbpm.schema.session_application.ISessionManagementbasicHttpBindingGateway;
 import org.junit.Test;
@@ -17,8 +19,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 
 public class AppTest
@@ -35,6 +36,8 @@ public class AppTest
 
     IEventManagement eventManagement = new IEventManagementbasicHttpBindingGateway().getBasicHttpBindingGatewayIEventManagement();
 
+    IModelManagement modelManagement = new IModelManagementbasicHttpBindingGateway().getBasicHttpBindingGatewayIModelManagement();
+
     String repositoryId = "0782621F10E744FE9E2DA2B200EFE71D" ;
     String modelUrlUtenti ="/"+repositoryId+"/Model/8BF7283E735943D780C3A2B3010CDA2A";
 
@@ -42,7 +45,7 @@ public class AppTest
 
     @org.junit.Test
     public void testCreateUser() throws UnknownHostException {
-       //effettua il login
+        //effettua il login
         RequestInfo requestInfo = login(USERNAME,PASSWORD);
 
         //inizializza una nuova identità UtenteSuPlus da utilizzare per la creazione (equivalente della parola chiave "new"  in remoto)
@@ -105,21 +108,7 @@ public class AppTest
 
     @Test
     public void updateUserAccount() throws UnknownHostException {
-        SearchParameters parameters = new SearchParameters();
-
-        Ordering ordering = new Ordering();
-        ordering.setAscending(true);
-        ordering.setColumnName("Nome");
-
-
-        ArrayOfOrdering ao = new ArrayOfOrdering();
-        ao.getOrdering().add(ordering);
-
-        parameters.setOrderingCriteria(ao);
-        parameters.setPageNumber(1);
-        parameters.setPageSize(-1);
-
-        parameters.setFilter(getStringFilter("Username", PredicateTypes.EQUALS_TO, "nomeOrg_Able2_1433520789264"));
+        SearchParameters parameters = getSearchParameters("Nome",getStringFilter("Username", PredicateTypes.EQUALS_TO, "nomeOrg_Able2_1433520789264"));
 
         RequestInfo requestInfo = login(USERNAME, PASSWORD);
         //TODO: Reperimento modelUrl
@@ -145,11 +134,64 @@ public class AppTest
         //Crea l'account in remoto
         ServiceResult accountResult = identityManagement.createAccount(repositoryId, userAccount, "password", requestInfo);
         assertFalse(accountResult.isError());
+    }
 
-        ServiceResultOfCatalog eventCatalogResult = eventManagement.getExtensionsCatalog(repositoryId, null, requestInfo);
-        assertFalse(eventCatalogResult.isError());
+    private SearchParameters getSearchParameters(String columnName, Filter filter) {
+        SearchParameters parameters = new SearchParameters();
+
+        Ordering ordering = new Ordering();
+        ordering.setAscending(true);
+        ordering.setColumnName(columnName);
 
 
+        ArrayOfOrdering ao = new ArrayOfOrdering();
+        ao.getOrdering().add(ordering);
+
+        parameters.setOrderingCriteria(ao);
+        parameters.setPageNumber(1);
+        parameters.setPageSize(-1);
+
+        parameters.setFilter(filter);
+        return parameters;
+    }
+
+    @Test
+    public void lancioEventoAzioneUtente() throws UnknownHostException {
+        RequestInfo info = login("neri","ng");
+        SearchParameters parameters = getSearchParameters("Name",getStringFilter("Name", PredicateTypes.EQUALS_TO, "Evento Azione Utente"));//"Azioni Promosse"
+
+        ServiceResultOfCatalog resultOfCatalog = modelManagement.getCurrentModelsCatalog(repositoryId,Types.CUSTOM_TYPE_MODEL,parameters,info);
+        if(resultOfCatalog.isError())
+            assertTrue(resultOfCatalog.getResultInfoList().getResultInfo().get(0).getMessage()+ "\nDetail: "+resultOfCatalog.getResultInfoList().getResultInfo().get(0).getDetailMessages(),false);
+        Catalog catalog = resultOfCatalog.getValue();
+        assertEquals("non ci sono eventi con il nome Evento Azioni Utente", 1, catalog.getTotalCount().intValue());
+        CatalogItem catalogItem = catalog.getItemList().getCatalogItem().get(0);
+        CustomEvent eventToPublish = new CustomEvent();
+        eventToPublish.setModelReference(new NamedReference());
+        eventToPublish.getModelReference().setName(catalogItem.getName());
+        eventToPublish.getModelReference().setUrl(catalogItem.getUrl());
+
+        Fields fields = new Fields();
+        fields.getItem().add(createFieldItem("Username","grazia"));
+        fields.getItem().add(createFieldItem("Tipo Azione","soggiorno"));
+        fields.getItem().add(createFieldItem("Applicazione","Cicerone"));
+        fields.getItem().add(createFieldItem("Data", new Date()));
+
+        eventToPublish.setFields(fields);
+
+        ServiceResultOfboolean eventPublishResult = eventManagement.publishEvent(repositoryId,eventToPublish,info);
+        if(eventPublishResult.isError())
+            assertTrue(eventPublishResult.getResultInfoList().getResultInfo().get(0).getMessage()+ "\nDetail: "+eventPublishResult.getResultInfoList().getResultInfo().get(0).getDetailMessages(),false);
+
+        //dataManagement
+
+    }
+
+    private Fields.Item createFieldItem(String key, Object value){
+        Fields.Item field = new Fields.Item();
+        field.setKey(key);
+        field.setVal(value);
+        return field;
     }
 
     public static Filter getStringFilter (final String subject,PredicateTypes predicate, String complement)
